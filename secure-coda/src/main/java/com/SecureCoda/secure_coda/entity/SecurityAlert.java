@@ -32,7 +32,7 @@ public class SecurityAlert {
     @Column(length = 100)
     private String description;
 
-    private String codaId;
+    private String codaDocId;
 
     private String docName;
 

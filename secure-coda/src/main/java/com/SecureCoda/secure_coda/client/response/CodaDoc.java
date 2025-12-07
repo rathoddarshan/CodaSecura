@@ -12,5 +12,5 @@ public class CodaDoc {
     private String browserLink;
     private boolean isPublished;
     private LocalDateTime createdAt;
-    private LocalDateTime resolvedAt;
+    private LocalDateTime updatedAt;
 }
