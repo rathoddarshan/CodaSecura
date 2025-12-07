@@ -10,8 +10,8 @@ import java.util.List;
 public interface AlertRepository extends JpaRepository<SecurityAlert, Long> {
     List<SecurityAlert> findByStatus(SecurityAlert.AlertStatus status);
 
-    List<SecurityAlert> findByCodaIdAndStatus(String codaId, SecurityAlert.AlertStatus status);
+    List<SecurityAlert> findByCodaDocIdAndStatus(String codaDocId, SecurityAlert.AlertStatus status);
 
-    List<SecurityAlert> FindByAlertType(String alertType);
+    List<SecurityAlert> findByAlertType(String alertType);
 
 }
