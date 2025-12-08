@@ -1,5 +1,6 @@
 package com.SecureCoda.secure_coda.client.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -13,4 +14,16 @@ public class CodaDoc {
     private boolean isPublished;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private  DocPublished published;
+
+    @Data
+    public static class DocPublished {
+        @JsonProperty("Public")
+        private boolean isPublic;
+
+        private String mode;
+    }
 }
+
+

@@ -29,4 +29,6 @@ public class AlertService {
                 .map(AlertSummaryDto::fromEntity)
                 .collect(Collectors.toList());
     }
+
+
 }
