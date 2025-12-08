@@ -38,7 +38,7 @@ public class SecurityAlert {
 
     private String resourceId;
 
-    private LocalDateTime detectAt;
+    private LocalDateTime detectedAt;
 
     private LocalDateTime resolvedAt;
 

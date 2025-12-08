@@ -1,6 +1,8 @@
 package com.SecureCoda.secure_coda.client;
 
 import com.SecureCoda.secure_coda.client.response.CodaDocResponse;
+import com.SecureCoda.secure_coda.client.response.CodaRowResponse;
+import com.SecureCoda.secure_coda.client.response.CodaTableResponse;
 import lombok.Data;
 import org.apache.tomcat.util.http.parser.Authorization;
 import org.springframework.cloud.openfeign.FeignClient;
@@ -17,6 +19,14 @@ public interface CodaApiClient {
     @DeleteMapping
     void deleteDoc(@RequestHeader("Authorization")String token, @PathVariable("docId") String docId);
 
+    @GetMapping("/docs/{docId}/tables")
+    CodaTableResponse listTables(@RequestHeader("Authorization") String token, @PathVariable("docId") String docId);
+
+    @GetMapping("/doc/{docId}/tables/{tableId}/rows")
+    CodaRowResponse listRows(@RequestHeader("Authorization") String token,
+                             @PathVariable("docId") String docId,
+                             @PathVariable("tableId") String tableId);
+
     @DeleteMapping("/docs/{docId}/tables/{tableId}/rows/{rowId}")
     void deleteRow(@RequestHeader("Authorization") String token,
                    @PathVariable("docId") String dcoId,
@@ -24,3 +34,4 @@ public interface CodaApiClient {
                    @PathVariable("rowId") String rowId);
 
 }
+

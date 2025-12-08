@@ -26,7 +26,7 @@ public class UnusedDocRule implements DetectionRule{
                     .codaDocId(doc.getId())
                     .docName(doc.getName())
                     .description("Document has not been modified for " + daySinceUpdate + " days.")
-                    .detectAt(LocalDateTime.now())
+                    .detectedAt(LocalDateTime.now())
                     .remediationStatus(SecurityAlert.RemediationStatus.PENDING)
                     .build();
 

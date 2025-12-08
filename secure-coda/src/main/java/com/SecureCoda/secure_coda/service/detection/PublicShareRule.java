@@ -21,7 +21,7 @@ public class PublicShareRule implements DetectionRule{
                             .codaDocId(doc.getId())
                             .docName(doc.getName())
                             .description("Document is published and publicly available " + doc.getBrowserLink())
-                            .detectAt(LocalDateTime.now())
+                            .detectedAt(LocalDateTime.now())
                             .remediationStatus(SecurityAlert.RemediationStatus.PENDING)
                             .build());
         }

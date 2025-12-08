@@ -26,7 +26,7 @@ public class AlertSummaryDto {
                 .docName(alert.getDocName())
                 .description(alert.getDescription())
                 .status(alert.getStatus().name())
-                .detectedAt(alert.getDetectAt())
+                .detectedAt(alert.getDetectedAt())
                 .build();
     }
 
