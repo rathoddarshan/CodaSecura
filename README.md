@@ -65,7 +65,7 @@ A Coda Account & API Token
 1. Clone the Repository
 Bash
 
-git clone https://github.com/your-username/SecureCoda.git
+git clone https://github.com/rathoddarshan/SecureCoda.git
 cd SecureCoda
 2. Configure Application
 Open src/main/resources/application.properties and update your settings:
