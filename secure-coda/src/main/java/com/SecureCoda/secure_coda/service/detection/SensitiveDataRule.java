@@ -34,41 +34,47 @@ public class SensitiveDataRule implements DetectionRule{
     public Optional<SecurityAlert> evaluate(CodaDoc doc) {
         try {
             CodaTableResponse tables = codaClient.listTables(apiToken, doc.getId());
-            if (tables.getItems() == null) {
-                return Optional.empty();
-            }
+            if (tables.getItems() == null) return Optional.empty();
 
             for (CodaTableResponse.CodaTableItem table : tables.getItems()) {
-                // 2. Fetch all rows in the table
-                CodaRowResponse rows = codaClient.listRows(apiToken, doc.getId(), table.getId());
-                if (rows.getItems() == null) continue;
 
-                for (CodaRowResponse.CodaRowItem row : rows.getItems()) {
-                    // 3. Scan cell values
-                    for (Object cellValue : row.getValues().values()) {
-                        String text = String.valueOf(cellValue);
 
-                        if (isSensitive(text)) {
-                            return Optional.of(SecurityAlert.builder()
-                                    .alertType("SENSITIVE_DATA")
-                                    .severity(SecurityAlert.AlertSeverity.MEDIUM)
-                                    .status(SecurityAlert.AlertStatus.OPEN)
-                                    .codaDocId(doc.getId())
-                                    .docName(doc.getName())
-                                    .resourceId(table.getId() + "/" + row.getId()) // Store Table/Row ID for deletion
-                                    .description("Sensitive data found in Table '" + table.getName() + "': " + text)
-                                    .detectedAt(LocalDateTime.now())
-                                    .remediationStatus(SecurityAlert.RemediationStatus.PENDING)
-                                    .build());
+                try {
+                    // Only scan actual tables (optional check, depends on API response)
+                    // if (!"table".equals(table.getType())) continue;
+
+                    CodaRowResponse rows = codaClient.listRows(apiToken, doc.getId(), table.getId());
+                    if (rows.getItems() == null) continue;
+
+                    for (CodaRowResponse.CodaRowItem row : rows.getItems()) {
+                        // ... existing scanning logic ...
+                        for (Object cellValue : row.getValues().values()) {
+                            String text = String.valueOf(cellValue);
+                            if (isSensitive(text)) {
+                                return Optional.of(SecurityAlert.builder()
+                                        .alertType("SENSITIVE_DATA")
+                                        .severity(SecurityAlert.AlertSeverity.MEDIUM)
+                                        .status(SecurityAlert.AlertStatus.OPEN)
+                                        .codaDocId(doc.getId())
+                                        .docName(doc.getName())
+                                        .resourceId(table.getId() + "/" + row.getId())
+                                        .description("Sensitive data in Table '" + table.getName() + "': " + text)
+                                        .detectedAt(LocalDateTime.now()) // Ensure this is here
+                                        .remediationStatus(SecurityAlert.RemediationStatus.PENDING)
+                                        .build());
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    // Log the error but CONTINUE to the next table
+                    log.warn("Could not read rows for table '{}' in doc '{}'. It might be a View or Restricted. Error: {}",
+                            table.getName(), doc.getName(), e.getMessage());
                 }
+                // --- END TRY-CATCH ---
             }
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             log.error("Error scanning doc {} for sensitive data", doc.getId(), e);
         }
-
         return Optional.empty();
     }
     private boolean isSensitive(String text) {

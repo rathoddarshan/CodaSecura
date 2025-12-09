@@ -27,9 +27,9 @@ public class AlertController {
         return alertService.getAllAlertsHistory();
     }
 
-    @PostMapping("/{id}remediate")
+    @PostMapping("/{id}/remediate")
     public ResponseEntity<String> remediateAlert(@PathVariable Long id){
-        remediationService.remediateAlert(id);
+        alertService.remediateAlert(id);
 
         return ResponseEntity.ok("Remediation action executed Successfully.");
     }

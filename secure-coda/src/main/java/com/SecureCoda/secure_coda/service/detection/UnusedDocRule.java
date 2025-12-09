@@ -12,20 +12,20 @@ import java.util.Optional;
 @Component
 public class UnusedDocRule implements DetectionRule{
 
-    @Value("${coda.scan.unused-days:90}")
+    @Value("${coda.scan.unused-days:10}")
     private int unusedDaysThreshold;
 
     @Override
     public Optional<SecurityAlert> evaluate(CodaDoc doc){
-        long daySinceUpdate = ChronoUnit.DAYS.between(doc.getUpdatedAt(), LocalDateTime.now());
-        if(daySinceUpdate > unusedDaysThreshold){
+        long timeSinceUpdate = ChronoUnit.MINUTES.between(doc.getUpdatedAt(), LocalDateTime.now());
+        if(timeSinceUpdate > 5){
             SecurityAlert alert = SecurityAlert.builder()
                     .alertType("UnusedDocument")
                     .severity(SecurityAlert.AlertSeverity.LOW)
                     .status(SecurityAlert.AlertStatus.OPEN)
                     .codaDocId(doc.getId())
                     .docName(doc.getName())
-                    .description("Document has not been modified for " + daySinceUpdate + " days.")
+                    .description("Document has not been modified for " + timeSinceUpdate + " days.")
                     .detectedAt(LocalDateTime.now())
                     .remediationStatus(SecurityAlert.RemediationStatus.PENDING)
                     .build();

@@ -29,7 +29,7 @@ public class SecurityAlert {
     @Enumerated(EnumType.STRING)
     private AlertStatus status;
 
-    @Column(length = 100)
+    @Column(length = 1000)
     private String description;
 
     private String codaDocId;

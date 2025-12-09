@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -22,39 +23,70 @@ public class ScannerService {
     private final CodaApiClient codaClient;
     private final AlertRepository alertRepository;
 
+    // Spring automatically injects all classes implementing DetectionRule
     private final List<DetectionRule> detectionRules;
 
     @Value("${coda.api.token}")
     private String apiToken;
 
-    public void runFullScan(){
+    public void runFullScan() {
         log.info("Starting full Security Scan...");
 
-        CodaDocResponse response = codaClient.listDocs(apiToken);
+        try {
+            // 1. Fetch all docs from Coda
+            CodaDocResponse response = codaClient.listDocs(apiToken);
 
-        if(response == null || response.getItems() == null){
-            log.warn("no Docs found or API failed");
-            return;
-        }
+            if (response == null || response.getItems() == null) {
+                log.warn("No documents found or API failed.");
+                return;
+            }
 
-        List<CodaDoc> docs = response.getItems();
-        log.info("Fetched {} documents. Analyzing... ", docs.size());
+            List<CodaDoc> docs = response.getItems();
+            log.info("Fetched {} documents. Analyzing...", docs.size());
 
-        for (CodaDoc doc : docs) {
+            // 2. Iterate through every document
+            for (CodaDoc doc : docs) {
 
-            // 3. Run every detection rule against the document
-            for (DetectionRule rule : detectionRules) {
-                Optional<SecurityAlert> alertOpt = rule.evaluate(doc);
+                // 3. Run every detection rule
+                for (DetectionRule rule : detectionRules) {
+                    try {
+                        Optional<SecurityAlert> alertOpt = rule.evaluate(doc);
 
-                if (alertOpt.isPresent()) {
-                    SecurityAlert alert = alertOpt.get();
+                        if (alertOpt.isPresent()) {
+                            SecurityAlert newAlert = alertOpt.get();
 
-                    // 4. Save to DB (Check duplicates logic can be added here later)
-                    alertRepository.save(alert);
-                    log.info("Alert Generated: {} for Doc: {}", alert.getAlertType(), doc.getName());
+
+                            // Check if an OPEN alert already exists for this specific Document
+                            List<SecurityAlert> existingAlerts = alertRepository.findByCodaDocIdAndStatus(
+                                    doc.getId(),
+                                    SecurityAlert.AlertStatus.OPEN
+                            );
+
+                            boolean isDuplicate = existingAlerts.stream().anyMatch(existing ->
+                                    // Same Alert Type (e.g., both are UNUSED_DOCUMENT)
+                                    existing.getAlertType().equals(newAlert.getAlertType()) &&
+                                            // Same Resource ID (e.g., same Row ID for sensitive data)
+                                            Objects.equals(existing.getResourceId(), newAlert.getResourceId())
+                            );
+
+                            if (isDuplicate) {
+                                log.debug("Skipping duplicate alert: {} for Doc: {}", newAlert.getAlertType(), doc.getName());
+                                continue;
+                            }
+                            // --- END DEDUPLICATION ---
+
+                            alertRepository.save(newAlert);
+                            log.info("Alert Generated: {} for Doc: {}", newAlert.getAlertType(), doc.getName());
+                        }
+                    } catch (Exception e) {
+                        log.error("Error executing rule {} on doc {}", rule.getClass().getSimpleName(), doc.getId(), e);
+                    }
                 }
             }
+            log.info("Scan Completed.");
+
+        } catch (Exception e) {
+            log.error("Critical error during full scan", e);
         }
-        log.info("Scan Completed. ");
     }
 }
